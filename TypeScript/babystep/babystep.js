@@ -24,30 +24,29 @@ Configurations.baseSoundURL = './babystep/sounds/';
 class Controller {
     static runNextTick() {
         let elapsedTime = TimeCalculations.calculateElaspedTime(Configurations.secondsInCycle, Controller.currentStartTime);
-        this.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, this.bodyBackgroundColor);
+        Controller.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, Controller.bodyBackgroundColor);
         let remainingTime = Configurations.getRemainingTimeCaption(elapsedTime);
-        if (TimeCalculations.isNewSecond(remainingTime, this.lastRemainingTime)) {
-            GUIStuff.updateUIForNewSecond(remainingTime, this.bodyBackgroundColor);
-            this.lastRemainingTime = remainingTime;
+        if (TimeCalculations.isNewSecond(remainingTime, Controller.lastRemainingTime)) {
+            GUIStuff.updateUIForNewSecond(remainingTime, Controller.bodyBackgroundColor);
+            Controller.lastRemainingTime = remainingTime;
         }
     }
     static quit() {
         document.body.innerHTML = "";
-        clearInterval(this._threadTimer);
+        clearInterval(Controller._threadTimer);
     }
     static reset() {
-        this.currentStartTime = Date.now();
-        this.bodyBackgroundColor = Configurations.backgroundColorPassed;
+        Controller.currentStartTime = Date.now();
+        Controller.bodyBackgroundColor = Configurations.backgroundColorPassed;
     }
     static stop() {
-        Configurations.secondsInCycle * 1000;
-        clearInterval(this._threadTimer);
         GUIStuff.resetGui(Configurations.backgroundColorNeutral);
+        clearInterval(Controller._threadTimer);
     }
     static start() {
         GUIStuff.resetGui(Configurations.backgroundColorNeutral);
-        this.currentStartTime = Date.now();
-        this._threadTimer = setInterval(this.runNextTick, 10);
+        Controller.currentStartTime = Date.now();
+        Controller._threadTimer = setInterval(this.runNextTick, 10);
     }
 }
 Controller.lastRemainingTime = Configurations.getRemainingTimeCaption(0);
@@ -55,7 +54,7 @@ Controller.bodyBackgroundColor = Configurations.backgroundColorNeutral;
 Controller.currentStartTime = Date.now();
 class GUIStuff {
     static resetGui(bgColor) {
-        document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), bgColor, true);
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), bgColor);
     }
     static updateUIForNewSecond(remainingTime, bgColor) {
         SoundStuff.playSoundAtTime(remainingTime, "00:10", `${Configurations.baseSoundURL}2166__suburban-grilla__bowl-struck.wav`);
@@ -63,7 +62,7 @@ class GUIStuff {
         this.updateHtml(remainingTime, bgColor);
     }
     static updateHtml(remainingTime, bgColor) {
-        document.body.innerHTML = HTMLOutput.CreateTimerHtml(remainingTime, bgColor, true);
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(remainingTime, bgColor);
     }
     static mightChangeBGColor(elapsedTime, bgColor) {
         if (TimeCalculations.isElapsedTimeBetween5and6seconds(elapsedTime) && Configurations.isNotNeutralBG(bgColor)) {
@@ -72,7 +71,6 @@ class GUIStuff {
         if (elapsedTime >= Configurations.secondsInCycle * 1000) {
             bgColor = Configurations.backgroundColorFailed;
         }
-        GUIStuff;
         return bgColor;
     }
 }
@@ -111,10 +109,10 @@ class TimeCalculations {
     }
 }
 class HTMLOutput {
-    static CreateTimerHtml(timerText, bodyColor, running) {
+    static CreateTimerHtml(timerText, bodyColor) {
         let timerHtml = this.createTimerBox(bodyColor);
         timerHtml += this.createTimerHtml(timerText);
-        timerHtml += this.createMenuHTML(running);
+        timerHtml += this.createMenuHTML(timerText !== Configurations.getRemainingTimeCaption(0));
         timerHtml += this.createTimerBoxClosingTag();
         return timerHtml;
     }
@@ -139,4 +137,4 @@ class HTMLOutput {
         return `<a style=\"color: #555555;\" href=\"javascript:Controller.${command}();\">${text}</a> `;
     }
 }
-document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), Configurations.backgroundColorNeutral, false);
+document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), Configurations.backgroundColorNeutral);

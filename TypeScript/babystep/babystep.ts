@@ -31,34 +31,34 @@ class Controller {
     public static currentStartTime: number = Date.now();
     public static runNextTick(): void {
         let elapsedTime: number = TimeCalculations.calculateElaspedTime(Configurations.secondsInCycle, Controller.currentStartTime);
-        this.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, this.bodyBackgroundColor);
+        Controller.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, Controller.bodyBackgroundColor);
         let remainingTime: string = Configurations.getRemainingTimeCaption(elapsedTime);
-        if (TimeCalculations.isNewSecond(remainingTime, this.lastRemainingTime)) {
-            GUIStuff.updateUIForNewSecond(remainingTime, this.bodyBackgroundColor);
-            this.lastRemainingTime = remainingTime;
+        if (TimeCalculations.isNewSecond(remainingTime, Controller.lastRemainingTime)) {
+            GUIStuff.updateUIForNewSecond(remainingTime, Controller.bodyBackgroundColor);
+            Controller.lastRemainingTime = remainingTime;
         }
     }
 
 
     public static quit():void {
         document.body.innerHTML = "";
-        clearInterval(this._threadTimer)
+        clearInterval(Controller._threadTimer)
     }
     
     public static reset():void {
-        this.currentStartTime = Date.now();
-        this.bodyBackgroundColor = Configurations.backgroundColorPassed;
+        Controller.currentStartTime = Date.now();
+        Controller.bodyBackgroundColor = Configurations.backgroundColorPassed;
     }
     
-    public static stop():void{Configurations.secondsInCycle * 1000
-        clearInterval(this._threadTimer)
+    public static stop():void{
         GUIStuff.resetGui(Configurations.backgroundColorNeutral);
+        clearInterval(Controller._threadTimer)
     }
     
     public static start():void {
         GUIStuff.resetGui(Configurations.backgroundColorNeutral)
-        this.currentStartTime = Date.now();
-        this._threadTimer = setInterval(this.runNextTick, 10);
+        Controller.currentStartTime = Date.now();
+        Controller._threadTimer = setInterval(this.runNextTick, 10);
     }
 }
 
@@ -67,8 +67,8 @@ class Controller {
 class GUIStuff {
   
     static resetGui(bgColor):void{
-        document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), bgColor, true);
-    }GUIStuff
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), bgColor);
+    }
     
     public static updateUIForNewSecond(remainingTime: string, bgColor: string): void{
         SoundStuff.playSoundAtTime(remainingTime, "00:10", `${Configurations.baseSoundURL}2166__suburban-grilla__bowl-struck.wav`);
@@ -77,7 +77,7 @@ class GUIStuff {
     }
 
     public static updateHtml(remainingTime: string, bgColor:string) {
-        document.body.innerHTML = HTMLOutput.CreateTimerHtml(remainingTime, bgColor, true);
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(remainingTime, bgColor);
     }
 
     public static mightChangeBGColor(elapsedTime: number, bgColor: string) {
@@ -86,7 +86,7 @@ class GUIStuff {
         }
         if (elapsedTime >= Configurations.secondsInCycle * 1000){
             bgColor = Configurations.backgroundColorFailed;
-        }GUIStuff
+        }
         return bgColor;
         
     }
@@ -137,11 +137,11 @@ class TimeCalculations {
 
 class HTMLOutput {
   
-    static CreateTimerHtml(timerText: string, bodyColor: string, running: boolean): string {
+    static CreateTimerHtml(timerText: string, bodyColor: string): string {
 
         let timerHtml: string = this.createTimerBox(bodyColor) ;
         timerHtml += this.createTimerHtml(timerText)  ;
-        timerHtml += this.createMenuHTML(running);
+        timerHtml += this.createMenuHTML(timerText !== Configurations.getRemainingTimeCaption(0));
         timerHtml += this.createTimerBoxClosingTag();
         return timerHtml;
     
@@ -173,4 +173,4 @@ class HTMLOutput {
  }
 
 
-document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), Configurations.backgroundColorNeutral, false);
+document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), Configurations.backgroundColorNeutral);
