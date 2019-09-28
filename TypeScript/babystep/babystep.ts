@@ -3,7 +3,7 @@ class Configurations {
     static  BackgroundColorNeutral: string = "#ffffff";
     static  BackgroundColorFailed: string = "#ffcccc";
     static  BackgroundColorPassed: string = "#ccffcc";
-    static  SecondsInCycle: number = 11;
+    static  SecondsInCycle: number = 120;
 }
 
 let isTimerRunning: boolean;
@@ -50,20 +50,29 @@ function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySound
     return function () {
         if (isTimerRunning) {
             let elapsedTime: number = calculateElaspedTime();
-            changeBGColorToNeutralIfElapsedTimebetween5and6Seconds(elapsedTime);
+            mightResetBGColor(elapsedTime, _bodyBackgroundColor);
             let remainingTime: string = getRemainingTimeCaption(elapsedTime);
-            doStuffIfNextSecondPassed(remainingTime, playSoundIfTimeis10or0SecondsRemaining);
+            if (isNewSecond(remainingTime)) {
+                playSoundIfTimeis10or0SecondsRemaining(remainingTime);
+                updateHtml(remainingTime, _bodyBackgroundColor);
+                _lastRemainingTime = remainingTime;
+            }
         }
     };
 
-    function playSoundIfTimeis10or0SecondsRemaining(remainingTime: string) {
-        if (remainingTime == "00:10") {
-            playSound("2166__suburban-grilla__bowl-struck.wav");
-        }
-        else if (remainingTime == "00:00") {
-            playSound("32304__acclivity__shipsbell.wav");
-            _bodyBackgroundColor = Configurations.BackgroundColorFailed;
-        }
+   
+}
+
+function isNewSecond(remainingTime) {
+    return _lastRemainingTime !== remainingTime;
+}
+function playSoundIfTimeis10or0SecondsRemaining(remainingTime: string) {
+    if (remainingTime == "00:10") {
+        playSound("2166__suburban-grilla__bowl-struck.wav");
+    }
+    else if (remainingTime == "00:00") {
+        playSound("32304__acclivity__shipsbell.wav");
+        _bodyBackgroundColor = Configurations.BackgroundColorFailed;
     }
 }
 
@@ -73,18 +82,22 @@ function calculateElaspedTime() {
     return elapsedTime;
 }
 
-function doStuffIfNextSecondPassed(remainingTime: string, playSoundIfTimeis10or0SecondsRemaining: (remainingTime: string) => void) {
-    if (_lastRemainingTime !== remainingTime) {
-        playSoundIfTimeis10or0SecondsRemaining(remainingTime);
-        document.body.innerHTML = CreateTimerHtml(remainingTime, _bodyBackgroundColor, true);
-        _lastRemainingTime = remainingTime;
+function updateHtml(remainingTime: string, bgColor:string) {
+    document.body.innerHTML = CreateTimerHtml(remainingTime, bgColor, true);
+}
+
+function mightResetBGColor(elapsedTime: number, bgColor: string) {
+    if ( isElapsedTimeBetween5and6seconds(elapsedTime) && isNotNeutralBG(bgColor)) {
+        _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
     }
 }
 
-function changeBGColorToNeutralIfElapsedTimebetween5and6Seconds(elapsedTime: number) {
-    if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Configurations.BackgroundColorNeutral) {
-        _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
-    }
+function isElapsedTimeBetween5and6seconds(elapsedTime: number){
+    return elapsedTime >= 5000 && elapsedTime < 6000
+}
+
+function isNotNeutralBG(bgColor:string){
+    return bgColor != Configurations.BackgroundColorNeutral;
 }
 
 function resetTimeIfOver(elapsedTime: number) {
