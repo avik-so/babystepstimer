@@ -39,9 +39,11 @@ class BabyStepGUI {
     private static createMenuLink(command: string, text: string): string {
         return `<a style=\"color: #555555;\" href=\"javascript:pickACommand('${command}');\">${text}</a> `
     }
+    public static resetGui():void{
+        document.body.innerHTML = this.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
+    }
 }
 
-let isTimerRunning: boolean;
 let currentStartTime: number;
 let _lastRemainingTime: string;
 
@@ -56,16 +58,11 @@ function pickACommand(arg: string): void {
     let args = { Url: { AbsoluteUri: `command://${arg}/` } }
     console.log('called', arg, args.Url.AbsoluteUri);
     if (args.Url.AbsoluteUri == "command://start/") {
-        document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
-
-        isTimerRunning = true;
-        currentStartTime = Date.now();
-
-        _threadTimer = setInterval(runNextTick(), 10);
+        startTimer();
     }
     else if (args.Url.AbsoluteUri == "command://stop/") {
         clearInterval(_threadTimer)
-        document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
+        BabyStepGUI.resetGui();
 
     }
     else if (args.Url.AbsoluteUri == "command://reset/") {
@@ -78,6 +75,16 @@ function pickACommand(arg: string): void {
     }
 
 };
+
+
+function startTimer():void {
+    BabyStepGUI.resetGui()
+
+    currentStartTime = Date.now();
+
+    _threadTimer = setInterval(runNextTick(), 10);
+}
+
 
 
 function runNextTick(): (...args: any[]) => void {
@@ -154,8 +161,6 @@ function getRemainingTimeCaption(elapsedTime: number): string {
     return '' + minute + ':' + second
 }
 
-
-
 function playSound(url: string): void {
     let audio = new Audio();
     audio.src = `./babystep/sounds/${url}`;
@@ -163,7 +168,3 @@ function playSound(url: string): void {
     audio.load();
     audio.play();
 }
-
-
-
-
