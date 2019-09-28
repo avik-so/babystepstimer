@@ -72,7 +72,7 @@ function playSoundIfTimeis10or0SecondsRemaining(remainingTime: string) {
     }
     else if (remainingTime == "00:00") {
         playSound("32304__acclivity__shipsbell.wav");
-        _bodyBackgroundColor = Configurations.BackgroundColorFailed;
+       
     }
 }
 
@@ -90,6 +90,10 @@ function mightResetBGColor(elapsedTime: number, bgColor: string) {
     if ( isElapsedTimeBetween5and6seconds(elapsedTime) && isNotNeutralBG(bgColor)) {
         _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
     }
+    if (elapsedTime >= Configurations.SecondsInCycle * 1000){
+        _bodyBackgroundColor = Configurations.BackgroundColorFailed;
+    }
+    
 }
 
 function isElapsedTimeBetween5and6seconds(elapsedTime: number){
