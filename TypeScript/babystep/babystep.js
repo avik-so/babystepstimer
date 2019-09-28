@@ -24,6 +24,9 @@ Configurations.baseSoundURL = './babystep/sounds/';
 class Controller {
     static runNextTick() {
         let elapsedTime = TimeCalculations.calculateElaspedTime(Configurations.secondsInCycle, Controller.currentStartTime);
+        if (elapsedTime == 0) {
+            Controller.currentStartTime = Date.now();
+        }
         Controller.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, Controller.bodyBackgroundColor);
         let remainingTime = Configurations.getRemainingTimeCaption(elapsedTime);
         if (TimeCalculations.isNewSecond(remainingTime, Controller.lastRemainingTime)) {
@@ -40,11 +43,11 @@ class Controller {
         Controller.bodyBackgroundColor = Configurations.backgroundColorPassed;
     }
     static stop() {
-        GUIStuff.resetGui(Configurations.backgroundColorNeutral);
+        GUIStuff.resetGui(Configurations.getRemainingTimeCaption(0), Configurations.backgroundColorNeutral);
         clearInterval(Controller._threadTimer);
     }
     static start() {
-        GUIStuff.resetGui(Configurations.backgroundColorNeutral);
+        GUIStuff.resetGui(Configurations.getRemainingTimeCaption(0), Configurations.backgroundColorNeutral);
         Controller.currentStartTime = Date.now();
         Controller._threadTimer = setInterval(this.runNextTick, 10);
     }
@@ -53,12 +56,12 @@ Controller.lastRemainingTime = Configurations.getRemainingTimeCaption(0);
 Controller.bodyBackgroundColor = Configurations.backgroundColorNeutral;
 Controller.currentStartTime = Date.now();
 class GUIStuff {
-    static resetGui(bgColor) {
-        document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), bgColor);
+    static resetGui(timeText, bgColor) {
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(timeText, bgColor);
     }
     static updateUIForNewSecond(remainingTime, bgColor) {
-        SoundStuff.playSoundAtTime(remainingTime, "00:10", `${Configurations.baseSoundURL}2166__suburban-grilla__bowl-struck.wav`);
-        SoundStuff.playSoundAtTime(remainingTime, "00:00", `${Configurations.baseSoundURL}32304__acclivity__shipsbell.wav`);
+        BellPlayer.playBelAtTime(remainingTime, "00:10", `${Configurations.baseSoundURL}2166__suburban-grilla__bowl-struck.wav`);
+        BellPlayer.playBelAtTime(remainingTime, "00:00", `${Configurations.baseSoundURL}32304__acclivity__shipsbell.wav`);
         this.updateHtml(remainingTime, bgColor);
     }
     static updateHtml(remainingTime, bgColor) {
@@ -74,13 +77,13 @@ class GUIStuff {
         return bgColor;
     }
 }
-class SoundStuff {
-    static playSoundAtTime(remainingTime, timeToPlay, sound) {
+class BellPlayer {
+    static playBelAtTime(remainingTime, timeToPlay, sound) {
         if (remainingTime == timeToPlay) {
-            this.playSound(sound);
+            this.playBell(sound);
         }
     }
-    static playSound(url) {
+    static playBell(url) {
         let audio = new Audio();
         audio.src = url;
         console.log(audio.src);
@@ -94,16 +97,15 @@ class TimeCalculations {
     }
     static calculateElaspedTime(cycleTime, startTime) {
         let elapsedTime = Date.now() - startTime;
-        elapsedTime = this.resetTimeIfOver(elapsedTime, startTime, cycleTime);
+        elapsedTime = this.resetTimeIfCycleComplete(elapsedTime, cycleTime);
         return elapsedTime;
     }
     static isElapsedTimeBetween5and6seconds(elapsedTime) {
         return elapsedTime >= 5000 && elapsedTime < 6000;
     }
-    static resetTimeIfOver(elapsedTime, currentStartTime, cycleTime) {
+    static resetTimeIfCycleComplete(elapsedTime, cycleTime) {
         if (elapsedTime >= cycleTime * 1000 + 980) {
-            Controller.currentStartTime = Date.now();
-            elapsedTime = Date.now() - currentStartTime;
+            elapsedTime = 0;
         }
         return elapsedTime;
     }
