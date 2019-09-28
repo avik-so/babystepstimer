@@ -125,26 +125,29 @@ function getRemainingTimeCaption(elapsedTime: number): string {
 
 function CreateTimerHtml(timerText: string, bodyColor: string, running: boolean): string {
 
-    let timerHtml: string = "<div style=\"border: 3px solid #555555; background: " + bodyColor +
-        "; margin: 0; padding: 0;\">" +
-        "<h1 style=\"text-align: center; font-size: 30px; color: #333333;\">" + timerText +
-        "</h1>" +
-        "<div style=\"text-align: center\">";
+    let timerHtml: string = createTimerBox(bodyColor) ;
+    timerHtml += createTimerHtml(timerText)  ;
     timerHtml += createMenuHTML(running);
-    timerHtml += "</div></div>"
+    timerHtml += createTimerBoxClosingTag();
     return timerHtml;
 
 }
+function createTimerBoxClosingTag():string{
+    return '</div>'
+}
+function createTimerBox(bodyColor:string):string{
+    return `<div style=\"border: 3px solid #555555; background: ${bodyColor}; margin: 0; padding: 0;\">`
+}
+
+function createTimerHtml(timerText: string): string{
+    return "<h1 style=\"text-align: center; font-size: 30px; color: #333333;\">" + timerText +  "</h1>"
+}
 
 function createMenuHTML (isRunning: boolean):string {
-    let menuHTML = ''
-    if (isRunning) {
-        menuHTML += createMenuLink('stop', 'Stop') + createMenuLink('reset', "Reset");
-    }
-    else {
-        menuHTML += createMenuLink('start', 'Start');
-    }
+    let menuHTML = '<div style=\"text-align: center\">'
+    menuHTML += isRunning? createMenuLink('stop', 'Stop') + createMenuLink('reset', "Reset") : createMenuLink('start', 'Start')
     menuHTML += createMenuLink('quit', 'Quit');
+    menuHTML += '</div>';
     return menuHTML;
 }
 
