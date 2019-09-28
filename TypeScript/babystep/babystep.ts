@@ -11,7 +11,7 @@ let _threadTimer: NodeJS.Timer;
 document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 
 
-function command(arg: string): void {
+function pickACommand(arg: string): void {
     let args = { Url: { AbsoluteUri: `command://${arg}/` } }
     console.log('called', arg, args.Url.AbsoluteUri);
     if (args.Url.AbsoluteUri == "command://start/") {
@@ -20,7 +20,7 @@ function command(arg: string): void {
         isTimerRunning = true;
         currentStartTime = Date.now();
 
-        _threadTimer = setInterval(runningCommand(), 10);
+        _threadTimer = setInterval(IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds(), 10);
     }
     else if (args.Url.AbsoluteUri == "command://stop/") {
         isTimerRunning = false;
@@ -40,7 +40,7 @@ function command(arg: string): void {
 };
 
 
-function runningCommand(): (...args: any[]) => void {
+function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds(): (...args: any[]) => void {
     return function () {
         if (isTimerRunning) {
             let elapsedTime: number = Date.now() - currentStartTime;
@@ -86,13 +86,13 @@ function CreateTimerHtml(timerText: string, bodyColor: string, running: boolean)
         "</h1>" +
         "<div style=\"text-align: center\">";
     if (running) {
-        timerHtml += "<a style=\"color: #555555;\" href=\"javascript:command('stop');\">Stop</a> " +
-            "<a style=\"color: #555555;\" href=\"javascript:command('reset');\">Reset</a> ";
+        timerHtml += "<a style=\"color: #555555;\" href=\"javascript:pickACommand('stop');\">Stop</a> " +
+            "<a style=\"color: #555555;\" href=\"javascript:pickACommand('reset');\">Reset</a> ";
     }
     else {
-        timerHtml += "<a style=\"color: #555555;\" href=\"javascript:command('start');\">Start</a> ";
+        timerHtml += "<a style=\"color: #555555;\" href=\"javascript:pickACommand('start');\">Start</a> ";
     }
-    timerHtml += "<a style=\"color: #555555;\" href=\"javascript:command('quit');\">Quit</a> ";
+    timerHtml += "<a style=\"color: #555555;\" href=\"javascript:pickACommand('quit');\">Quit</a> ";
     timerHtml += "</div></div>"
     return timerHtml;
 
