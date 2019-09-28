@@ -1,8 +1,9 @@
-import { Configurations } from "./BackgroundColorNeutral.1";
+import { Configurations } from './Config';
 
-let _timerRunning: boolean;
-let _currentCycleStartTime: number;
+let isTimerRunning: boolean;
+let currentStartTime: number;
 let _lastRemainingTime: string;
+
 let _bodyBackgroundColor: string = Configurations.BackgroundColorNeutral;
 let _threadTimer: NodeJS.Timer;
 
@@ -16,48 +17,19 @@ function command(arg: string): void {
     if (args.Url.AbsoluteUri == "command://start/") {
         document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
 
-        _timerRunning = true;
-        _currentCycleStartTime = Date.now();
+        isTimerRunning = true;
+        currentStartTime = Date.now();
 
-        _threadTimer = setInterval(function() {
-            if (_timerRunning) {
-                let elapsedTime: number = Date.now() - _currentCycleStartTime;
-
-                if (elapsedTime >= Configurations.SecondsInCycle * 1000 + 980) {
-                    _currentCycleStartTime = Date.now();
-                    elapsedTime = Date.now() - _currentCycleStartTime;
-                }
-                if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Configurations.BackgroundColorNeutral) {
-                    _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
-                }
-
-                let remainingTime: string = getRemainingTimeCaption(elapsedTime);
-
-
-                if (_lastRemainingTime !== remainingTime) {
-
-                    if (remainingTime == "00:10") {
-                        playSound("2166__suburban-grilla__bowl-struck.wav");
-                    }
-                    else if (remainingTime == "00:00") {
-                        playSound("32304__acclivity__shipsbell.wav");
-                        _bodyBackgroundColor = Configurations.BackgroundColorFailed;
-                    }
-
-                    document.body.innerHTML = CreateTimerHtml(remainingTime, _bodyBackgroundColor, true);
-                    _lastRemainingTime = remainingTime;
-                }
-            }
-        }, 10);
+        _threadTimer = setInterval(runningCommand(), 10);
     }
     else if (args.Url.AbsoluteUri == "command://stop/") {
-        _timerRunning = false;
+        isTimerRunning = false;
         clearInterval(_threadTimer)
         document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 
     }
     else if (args.Url.AbsoluteUri == "command://reset/") {
-        _currentCycleStartTime = Date.now();
+        currentStartTime = Date.now();
         _bodyBackgroundColor = Configurations.BackgroundColorPassed;
     }
     else if (args.Url.AbsoluteUri == "command://quit/") {
@@ -67,6 +39,33 @@ function command(arg: string): void {
 
 };
 
+
+function runningCommand(): (...args: any[]) => void {
+    return function () {
+        if (isTimerRunning) {
+            let elapsedTime: number = Date.now() - currentStartTime;
+            if (elapsedTime >= Configurations.SecondsInCycle * 1000 + 980) {
+                currentStartTime = Date.now();
+                elapsedTime = Date.now() - currentStartTime;
+            }
+            if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Configurations.BackgroundColorNeutral) {
+                _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
+            }
+            let remainingTime: string = getRemainingTimeCaption(elapsedTime);
+            if (_lastRemainingTime !== remainingTime) {
+                if (remainingTime == "00:10") {
+                    playSound("2166__suburban-grilla__bowl-struck.wav");
+                }
+                else if (remainingTime == "00:00") {
+                    playSound("32304__acclivity__shipsbell.wav");
+                    _bodyBackgroundColor = Configurations.BackgroundColorFailed;
+                }
+                document.body.innerHTML = CreateTimerHtml(remainingTime, _bodyBackgroundColor, true);
+                _lastRemainingTime = remainingTime;
+            }
+        }
+    };
+}
 
 function getRemainingTimeCaption(elapsedTime: number): string {
 
@@ -106,5 +105,7 @@ function playSound(url: string): void {
     audio.load();
     audio.play();
 }
+
+
 
 
