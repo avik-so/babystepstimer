@@ -1,65 +1,10 @@
 "use strict";
 class Configurations {
     static isNotNeutralBG(bgColor) {
-        return bgColor != Configurations.BackgroundColorNeutral;
+        return bgColor != Configurations.backgroundColorNeutral;
     }
-}
-Configurations.BackgroundColorNeutral = "#ffffff";
-Configurations.BackgroundColorFailed = "#ffcccc";
-Configurations.BackgroundColorPassed = "#ccffcc";
-Configurations.SecondsInCycle = 120;
-class Controller {
-    static runNextTick() {
-        let elapsedTime = TimeCalculations.calculateElaspedTime(Configurations.SecondsInCycle, this.currentStartTime);
-        this.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, this.bodyBackgroundColor);
-        let remainingTime = GUIStuff.getRemainingTimeCaption((Configurations.SecondsInCycle * 1000) - elapsedTime);
-        if (TimeCalculations.isNewSecond(remainingTime, this.lastRemainingTime)) {
-            GUIStuff.updateUIForNewSecond(remainingTime, this.bodyBackgroundColor);
-            this.lastRemainingTime = remainingTime;
-        }
-    }
-    static quit() {
-        document.body.innerHTML = "";
-        clearInterval(this._threadTimer);
-    }
-    static reset() {
-        this.currentStartTime = Date.now();
-        this.bodyBackgroundColor = Configurations.BackgroundColorPassed;
-    }
-    static stop() {
-        clearInterval(this._threadTimer);
-        GUIStuff.resetGui(Configurations.BackgroundColorNeutral);
-    }
-    static start() {
-        GUIStuff.resetGui(Configurations.BackgroundColorNeutral);
-        this.currentStartTime = Date.now();
-        this._threadTimer = setInterval(this.runNextTick, 10);
-    }
-}
-Controller.bodyBackgroundColor = Configurations.BackgroundColorNeutral;
-Controller.currentStartTime = Date.now();
-class GUIStuff {
-    static resetGui(bgColor) {
-        document.body.innerHTML = HTMLOutput.CreateTimerHtml(this.getRemainingTimeCaption(Configurations.SecondsInCycle * 1000), bgColor, true);
-    }
-    static updateUIForNewSecond(remainingTime, bgColor) {
-        SoundStuff.playSoundAtKeyPoints(remainingTime);
-        this.updateHtml(remainingTime, bgColor);
-    }
-    static updateHtml(remainingTime, bgColor) {
-        document.body.innerHTML = HTMLOutput.CreateTimerHtml(remainingTime, bgColor, true);
-    }
-    static mightChangeBGColor(elapsedTime, bgColor) {
-        if (TimeCalculations.isElapsedTimeBetween5and6seconds(elapsedTime) && Configurations.isNotNeutralBG(bgColor)) {
-            bgColor = Configurations.BackgroundColorNeutral;
-        }
-        if (elapsedTime >= Configurations.SecondsInCycle * 1000) {
-            bgColor = Configurations.BackgroundColorFailed;
-        }
-        return bgColor;
-    }
-    static getRemainingTimeCaption(time) {
-        let remainingTime = new Date(time);
+    static getRemainingTimeCaption(elapsedTime) {
+        let remainingTime = new Date((Configurations.secondsInCycle * 1000) - elapsedTime);
         var minute = remainingTime.getMinutes();
         var second = remainingTime.getSeconds();
         if (minute < 10) {
@@ -71,18 +16,75 @@ class GUIStuff {
         return '' + minute + ':' + second;
     }
 }
-class SoundStuff {
-    static playSoundAtKeyPoints(remainingTime) {
-        if (remainingTime == "00:10") {
-            this.playSound("2166__suburban-grilla__bowl-struck.wav");
+Configurations.backgroundColorNeutral = "#ffffff";
+Configurations.backgroundColorFailed = "#ffcccc";
+Configurations.backgroundColorPassed = "#ccffcc";
+Configurations.secondsInCycle = 120;
+Configurations.baseSoundURL = './babystep/sounds/';
+class Controller {
+    static runNextTick() {
+        let elapsedTime = TimeCalculations.calculateElaspedTime(Configurations.secondsInCycle, Controller.currentStartTime);
+        this.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, this.bodyBackgroundColor);
+        let remainingTime = Configurations.getRemainingTimeCaption(elapsedTime);
+        if (TimeCalculations.isNewSecond(remainingTime, this.lastRemainingTime)) {
+            GUIStuff.updateUIForNewSecond(remainingTime, this.bodyBackgroundColor);
+            this.lastRemainingTime = remainingTime;
         }
-        else if (remainingTime == "00:00") {
-            this.playSound("32304__acclivity__shipsbell.wav");
+    }
+    static quit() {
+        document.body.innerHTML = "";
+        clearInterval(this._threadTimer);
+    }
+    static reset() {
+        this.currentStartTime = Date.now();
+        this.bodyBackgroundColor = Configurations.backgroundColorPassed;
+    }
+    static stop() {
+        Configurations.secondsInCycle * 1000;
+        clearInterval(this._threadTimer);
+        GUIStuff.resetGui(Configurations.backgroundColorNeutral);
+    }
+    static start() {
+        GUIStuff.resetGui(Configurations.backgroundColorNeutral);
+        this.currentStartTime = Date.now();
+        this._threadTimer = setInterval(this.runNextTick, 10);
+    }
+}
+Controller.lastRemainingTime = Configurations.getRemainingTimeCaption(0);
+Controller.bodyBackgroundColor = Configurations.backgroundColorNeutral;
+Controller.currentStartTime = Date.now();
+class GUIStuff {
+    static resetGui(bgColor) {
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), bgColor, true);
+    }
+    static updateUIForNewSecond(remainingTime, bgColor) {
+        SoundStuff.playSoundAtTime(remainingTime, "00:10", `${Configurations.baseSoundURL}2166__suburban-grilla__bowl-struck.wav`);
+        SoundStuff.playSoundAtTime(remainingTime, "00:00", `${Configurations.baseSoundURL}32304__acclivity__shipsbell.wav`);
+        this.updateHtml(remainingTime, bgColor);
+    }
+    static updateHtml(remainingTime, bgColor) {
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(remainingTime, bgColor, true);
+    }
+    static mightChangeBGColor(elapsedTime, bgColor) {
+        if (TimeCalculations.isElapsedTimeBetween5and6seconds(elapsedTime) && Configurations.isNotNeutralBG(bgColor)) {
+            bgColor = Configurations.backgroundColorNeutral;
+        }
+        if (elapsedTime >= Configurations.secondsInCycle * 1000) {
+            bgColor = Configurations.backgroundColorFailed;
+        }
+        GUIStuff;
+        return bgColor;
+    }
+}
+class SoundStuff {
+    static playSoundAtTime(remainingTime, timeToPlay, sound) {
+        if (remainingTime == timeToPlay) {
+            this.playSound(sound);
         }
     }
     static playSound(url) {
         let audio = new Audio();
-        audio.src = `./babystep/sounds/${url}`;
+        audio.src = url;
         console.log(audio.src);
         audio.load();
         audio.play();
@@ -102,7 +104,7 @@ class TimeCalculations {
     }
     static resetTimeIfOver(elapsedTime, currentStartTime, cycleTime) {
         if (elapsedTime >= cycleTime * 1000 + 980) {
-            currentStartTime = Date.now();
+            Controller.currentStartTime = Date.now();
             elapsedTime = Date.now() - currentStartTime;
         }
         return elapsedTime;
@@ -137,4 +139,4 @@ class HTMLOutput {
         return `<a style=\"color: #555555;\" href=\"javascript:Controller.${command}();\">${text}</a> `;
     }
 }
-document.body.innerHTML = HTMLOutput.CreateTimerHtml(GUIStuff.getRemainingTimeCaption(Configurations.SecondsInCycle * 1000), Configurations.BackgroundColorNeutral, false);
+document.body.innerHTML = HTMLOutput.CreateTimerHtml(Configurations.getRemainingTimeCaption(0), Configurations.backgroundColorNeutral, false);
