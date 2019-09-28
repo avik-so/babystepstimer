@@ -9,32 +9,23 @@ class Configurations {
 class GUIStuff {
 
     public static bodyBackgroundColor: string = Configurations.BackgroundColorNeutral;
-
-    public static isNewSecond(remainingTime) {
-        return this._lastRemainingTime !== remainingTime;
+    public static currentStartTime: number = Date.now();
+    
+    static resetGui(bgColor):void{
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(this.getRemainingTimeCaption(Configurations.SecondsInCycle * 1000), bgColor, true);
     }
-
-    public static _lastRemainingTime: string = GUIStuff.getRemainingTimeCaption(Configurations.SecondsInCycle * 1000);
-    public static runNextTick(): void {
-        let elapsedTime: number = TimeStuff.calculateElaspedTime(Configurations.SecondsInCycle);
-        this.bodyBackgroundColor = this.mightChangeBGColor(elapsedTime, this.bodyBackgroundColor);
-        let remainingTime: string = this.getRemainingTimeCaption(elapsedTime);
-        if (this.isNewSecond(remainingTime)) {
-            this.updateUIForNewSecond(remainingTime);
-            this._lastRemainingTime = remainingTime;
-        }
-    }
+    
     public static updateUIForNewSecond(remainingTime: string): void{
         SoundStuff.playSoundAtKeyPoints(remainingTime);
         this.updateHtml(remainingTime, this.bodyBackgroundColor);
     }
 
     public static updateHtml(remainingTime: string, bgColor:string) {
-        document.body.innerHTML = HTMLOutput .CreateTimerHtml(remainingTime, bgColor, true);
+        document.body.innerHTML = HTMLOutput.CreateTimerHtml(remainingTime, bgColor, true);
     }
 
     public static mightChangeBGColor(elapsedTime: number, bgColor: string) {
-        if ( TimeStuff.isElapsedTimeBetween5and6seconds(elapsedTime) && this.isNotNeutralBG(bgColor)) {
+        if ( TimeCalculations.isElapsedTimeBetween5and6seconds(elapsedTime) && this.isNotNeutralBG(bgColor)) {
             bgColor = Configurations.BackgroundColorNeutral;
         }
         if (elapsedTime >= Configurations.SecondsInCycle * 1000){
@@ -48,9 +39,9 @@ class GUIStuff {
         return bgColor != Configurations.BackgroundColorNeutral;
     }
 
-    public static getRemainingTimeCaption(elapsedTime: number): string {
+    public static getRemainingTimeCaption(time: number): string {
 
-        let remainingTime: Date = new Date((Configurations.SecondsInCycle * 1000) - elapsedTime);
+        let remainingTime: Date = new Date(time);
         var minute: string | number = remainingTime.getMinutes();
         var second: string | number = remainingTime.getSeconds();
         if (minute < 10) { minute = '0' + minute; }
@@ -72,9 +63,7 @@ class HTMLOutput {
         return timerHtml;
     
     }
-    static resetGui():void{
-        document.body.innerHTML = this.CreateTimerHtml(GUIStuff.getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
-    }
+    
     private static createTimerBoxClosingTag():string{
         return '</div>'
     }
@@ -95,35 +84,48 @@ class HTMLOutput {
     }
     
     private static createMenuLink(command: string, text: string): string {
-        return `<a style=\"color: #555555;\" href=\"javascript:ActiveState.${command}();\">${text}</a> `
+        //Hiddent dependecy on Controller class
+        return `<a style=\"color: #555555;\" href=\"javascript:Controller.${command}();\">${text}</a> `
     }
  }
 
 
 
-class ActiveState {
+class Controller {
 
 
     public static _threadTimer: NodeJS.Timer ;
+    private static lastRemainingTime: string;
+    public static runNextTick(): void {
+        let elapsedTime: number = TimeCalculations.calculateElaspedTime(Configurations.SecondsInCycle, GUIStuff.currentStartTime);
+        GUIStuff.bodyBackgroundColor = GUIStuff.mightChangeBGColor(elapsedTime, GUIStuff.bodyBackgroundColor);
+        let remainingTime: string = GUIStuff.getRemainingTimeCaption((Configurations.SecondsInCycle * 1000) - elapsedTime);
+        if (TimeCalculations.isNewSecond(remainingTime, this.lastRemainingTime)) {
+            GUIStuff.updateUIForNewSecond(remainingTime);
+            this.lastRemainingTime = remainingTime;
+        }
+    }
+
+
     public static quit():void {
         document.body.innerHTML = "";
         clearInterval(this._threadTimer)
     }
     
     public static reset():void {
-        TimeStuff.currentStartTime = Date.now();
+        GUIStuff.currentStartTime = Date.now();
         GUIStuff.bodyBackgroundColor = Configurations.BackgroundColorPassed;
     }
     
     public static stop():void{
         clearInterval(this._threadTimer)
-        HTMLOutput.resetGui();
+        GUIStuff.resetGui(Configurations.BackgroundColorNeutral);
     }
     
     public static start():void {
-        HTMLOutput.resetGui()
-        TimeStuff.currentStartTime = Date.now();
-        this._threadTimer = setInterval(GUIStuff.runNextTick, 10);
+        GUIStuff.resetGui(Configurations.BackgroundColorNeutral)
+        GUIStuff.currentStartTime = Date.now();
+        this._threadTimer = setInterval(this.runNextTick, 10);
     }
 }
 
@@ -148,13 +150,14 @@ class SoundStuff {
     }
 }
 
-class TimeStuff {
-   
-    public static currentStartTime: number = Date.now();
-
-    public static calculateElaspedTime( cycleTime: number) {
-        let elapsedTime: number = Date.now() - this.currentStartTime;
-        elapsedTime = this.resetTimeIfOver(elapsedTime, this.currentStartTime, cycleTime);
+class TimeCalculations {
+      
+    public static isNewSecond(remainingTime: string, lastRemainingTime: string) {
+        return remainingTime !== lastRemainingTime;
+    }
+    public static calculateElaspedTime( cycleTime: number, startTime: number) {
+        let elapsedTime: number = Date.now() - startTime;
+        elapsedTime = this.resetTimeIfOver(elapsedTime, startTime, cycleTime);
         return elapsedTime;
     }
 
@@ -171,4 +174,4 @@ class TimeStuff {
 
 }
 
-document.body.innerHTML = HTMLOutput.CreateTimerHtml(GUIStuff.getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
+document.body.innerHTML = HTMLOutput.CreateTimerHtml(GUIStuff.getRemainingTimeCaption(Configurations.SecondsInCycle * 1000), Configurations.BackgroundColorNeutral, false);
