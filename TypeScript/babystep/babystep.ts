@@ -6,6 +6,41 @@ class Configurations {
     static  SecondsInCycle: number = 120;
 }
 
+class BabyStepGUI {
+  
+    static CreateTimerHtml(timerText: string, bodyColor: string, running: boolean): string {
+
+        let timerHtml: string = this.createTimerBox(bodyColor) ;
+        timerHtml += this.createTimerHtml(timerText)  ;
+        timerHtml += this.createMenuHTML(running);
+        timerHtml += this.createTimerBoxClosingTag();
+        return timerHtml;
+    
+    }
+    private static createTimerBoxClosingTag():string{
+        return '</div>'
+    }
+    private static createTimerBox(bodyColor:string):string{
+        return `<div style=\"border: 3px solid #555555; background: ${bodyColor}; margin: 0; padding: 0;\">`
+    }
+    
+    private  static createTimerHtml(timerText: string): string{
+        return "<h1 style=\"text-align: center; font-size: 30px; color: #333333;\">" + timerText +  "</h1>"
+    }
+    
+    private static createMenuHTML (isRunning: boolean):string {
+        let menuHTML = '<div style=\"text-align: center\">'
+        menuHTML += isRunning? this.createMenuLink('stop', 'Stop') + this.createMenuLink('reset', "Reset") : this.createMenuLink('start', 'Start')
+        menuHTML += this.createMenuLink('quit', 'Quit');
+        menuHTML += '</div>';
+        return menuHTML;
+    }
+    
+    private static createMenuLink(command: string, text: string): string {
+        return `<a style=\"color: #555555;\" href=\"javascript:pickACommand('${command}');\">${text}</a> `
+    }
+}
+
 let isTimerRunning: boolean;
 let currentStartTime: number;
 let _lastRemainingTime: string;
@@ -14,24 +49,23 @@ let _bodyBackgroundColor: string = Configurations.BackgroundColorNeutral;
 let _threadTimer: NodeJS.Timer;
 
 
-document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
+document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 
 
 function pickACommand(arg: string): void {
     let args = { Url: { AbsoluteUri: `command://${arg}/` } }
     console.log('called', arg, args.Url.AbsoluteUri);
     if (args.Url.AbsoluteUri == "command://start/") {
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
+        document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
 
         isTimerRunning = true;
         currentStartTime = Date.now();
 
-        _threadTimer = setInterval(IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds(), 10);
+        _threadTimer = setInterval(runNextTick(), 10);
     }
     else if (args.Url.AbsoluteUri == "command://stop/") {
-        isTimerRunning = false;
         clearInterval(_threadTimer)
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
+        document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 
     }
     else if (args.Url.AbsoluteUri == "command://reset/") {
@@ -46,10 +80,9 @@ function pickACommand(arg: string): void {
 };
 
 
-function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds(): (...args: any[]) => void {
+function runNextTick(): (...args: any[]) => void {
     return function () {
-        if (isTimerRunning) {
-            let elapsedTime: number = calculateElaspedTime();
+             let elapsedTime: number = calculateElaspedTime();
             mightChangeBGColor(elapsedTime, _bodyBackgroundColor);
             let remainingTime: string = getRemainingTimeCaption(elapsedTime);
             if (isNewSecond(remainingTime)) {
@@ -57,10 +90,8 @@ function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySound
                 updateHtml(remainingTime, _bodyBackgroundColor);
                 _lastRemainingTime = remainingTime;
             }
-        }
     };
 
-   
 }
 
 function isNewSecond(remainingTime) {
@@ -83,7 +114,7 @@ function calculateElaspedTime() {
 }
 
 function updateHtml(remainingTime: string, bgColor:string) {
-    document.body.innerHTML = CreateTimerHtml(remainingTime, bgColor, true);
+    document.body.innerHTML = BabyStepGUI .CreateTimerHtml(remainingTime, bgColor, true);
 }
 
 function mightChangeBGColor(elapsedTime: number, bgColor: string) {
@@ -123,37 +154,7 @@ function getRemainingTimeCaption(elapsedTime: number): string {
     return '' + minute + ':' + second
 }
 
-function CreateTimerHtml(timerText: string, bodyColor: string, running: boolean): string {
 
-    let timerHtml: string = createTimerBox(bodyColor) ;
-    timerHtml += createTimerHtml(timerText)  ;
-    timerHtml += createMenuHTML(running);
-    timerHtml += createTimerBoxClosingTag();
-    return timerHtml;
-
-}
-function createTimerBoxClosingTag():string{
-    return '</div>'
-}
-function createTimerBox(bodyColor:string):string{
-    return `<div style=\"border: 3px solid #555555; background: ${bodyColor}; margin: 0; padding: 0;\">`
-}
-
-function createTimerHtml(timerText: string): string{
-    return "<h1 style=\"text-align: center; font-size: 30px; color: #333333;\">" + timerText +  "</h1>"
-}
-
-function createMenuHTML (isRunning: boolean):string {
-    let menuHTML = '<div style=\"text-align: center\">'
-    menuHTML += isRunning? createMenuLink('stop', 'Stop') + createMenuLink('reset', "Reset") : createMenuLink('start', 'Start')
-    menuHTML += createMenuLink('quit', 'Quit');
-    menuHTML += '</div>';
-    return menuHTML;
-}
-
-function createMenuLink(command: string, text: string): string {
-    return `<a style=\"color: #555555;\" href=\"javascript:pickACommand('${command}');\">${text}</a> `
-}
 
 function playSound(url: string): void {
     let audio = new Audio();

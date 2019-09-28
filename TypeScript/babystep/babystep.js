@@ -5,25 +5,52 @@ Configurations.BackgroundColorNeutral = "#ffffff";
 Configurations.BackgroundColorFailed = "#ffcccc";
 Configurations.BackgroundColorPassed = "#ccffcc";
 Configurations.SecondsInCycle = 120;
+class BabyStepGUI {
+    static CreateTimerHtml(timerText, bodyColor, running) {
+        let timerHtml = this.createTimerBox(bodyColor);
+        timerHtml += this.createTimerHtml(timerText);
+        timerHtml += this.createMenuHTML(running);
+        timerHtml += this.createTimerBoxClosingTag();
+        return timerHtml;
+    }
+    static createTimerBoxClosingTag() {
+        return '</div>';
+    }
+    static createTimerBox(bodyColor) {
+        return `<div style=\"border: 3px solid #555555; background: ${bodyColor}; margin: 0; padding: 0;\">`;
+    }
+    static createTimerHtml(timerText) {
+        return "<h1 style=\"text-align: center; font-size: 30px; color: #333333;\">" + timerText + "</h1>";
+    }
+    static createMenuHTML(isRunning) {
+        let menuHTML = '<div style=\"text-align: center\">';
+        menuHTML += isRunning ? this.createMenuLink('stop', 'Stop') + this.createMenuLink('reset', "Reset") : this.createMenuLink('start', 'Start');
+        menuHTML += this.createMenuLink('quit', 'Quit');
+        menuHTML += '</div>';
+        return menuHTML;
+    }
+    static createMenuLink(command, text) {
+        return `<a style=\"color: #555555;\" href=\"javascript:pickACommand('${command}');\">${text}</a> `;
+    }
+}
 let isTimerRunning;
 let currentStartTime;
 let _lastRemainingTime;
 let _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
 let _threadTimer;
-document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
+document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 function pickACommand(arg) {
     let args = { Url: { AbsoluteUri: `command://${arg}/` } };
     console.log('called', arg, args.Url.AbsoluteUri);
     if (args.Url.AbsoluteUri == "command://start/") {
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
+        document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
         isTimerRunning = true;
         currentStartTime = Date.now();
-        _threadTimer = setInterval(IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds(), 10);
+        _threadTimer = setInterval(runNextTick(), 10);
     }
     else if (args.Url.AbsoluteUri == "command://stop/") {
-        isTimerRunning = false;
         clearInterval(_threadTimer);
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
+        document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
     }
     else if (args.Url.AbsoluteUri == "command://reset/") {
         currentStartTime = Date.now();
@@ -35,17 +62,15 @@ function pickACommand(arg) {
     }
 }
 ;
-function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds() {
+function runNextTick() {
     return function () {
-        if (isTimerRunning) {
-            let elapsedTime = calculateElaspedTime();
-            mightChangeBGColor(elapsedTime, _bodyBackgroundColor);
-            let remainingTime = getRemainingTimeCaption(elapsedTime);
-            if (isNewSecond(remainingTime)) {
-                playSoundIfTimeis10or0SecondsRemaining(remainingTime);
-                updateHtml(remainingTime, _bodyBackgroundColor);
-                _lastRemainingTime = remainingTime;
-            }
+        let elapsedTime = calculateElaspedTime();
+        mightChangeBGColor(elapsedTime, _bodyBackgroundColor);
+        let remainingTime = getRemainingTimeCaption(elapsedTime);
+        if (isNewSecond(remainingTime)) {
+            playSoundIfTimeis10or0SecondsRemaining(remainingTime);
+            updateHtml(remainingTime, _bodyBackgroundColor);
+            _lastRemainingTime = remainingTime;
         }
     };
 }
@@ -66,7 +91,7 @@ function calculateElaspedTime() {
     return elapsedTime;
 }
 function updateHtml(remainingTime, bgColor) {
-    document.body.innerHTML = CreateTimerHtml(remainingTime, bgColor, true);
+    document.body.innerHTML = BabyStepGUI.CreateTimerHtml(remainingTime, bgColor, true);
 }
 function mightChangeBGColor(elapsedTime, bgColor) {
     if (isElapsedTimeBetween5and6seconds(elapsedTime) && isNotNeutralBG(bgColor)) {
@@ -100,32 +125,6 @@ function getRemainingTimeCaption(elapsedTime) {
         second = '0' + second;
     }
     return '' + minute + ':' + second;
-}
-function CreateTimerHtml(timerText, bodyColor, running) {
-    let timerHtml = createTimerBox(bodyColor);
-    timerHtml += createTimerHtml(timerText);
-    timerHtml += createMenuHTML(running);
-    timerHtml += createTimerBoxClosingTag();
-    return timerHtml;
-}
-function createTimerBoxClosingTag() {
-    return '</div>';
-}
-function createTimerBox(bodyColor) {
-    return `<div style=\"border: 3px solid #555555; background: ${bodyColor}; margin: 0; padding: 0;\">`;
-}
-function createTimerHtml(timerText) {
-    return "<h1 style=\"text-align: center; font-size: 30px; color: #333333;\">" + timerText + "</h1>";
-}
-function createMenuHTML(isRunning) {
-    let menuHTML = '<div style=\"text-align: center\">';
-    menuHTML += isRunning ? createMenuLink('stop', 'Stop') + createMenuLink('reset', "Reset") : createMenuLink('start', 'Start');
-    menuHTML += createMenuLink('quit', 'Quit');
-    menuHTML += '</div>';
-    return menuHTML;
-}
-function createMenuLink(command, text) {
-    return `<a style=\"color: #555555;\" href=\"javascript:pickACommand('${command}');\">${text}</a> `;
 }
 function playSound(url) {
     let audio = new Audio();
