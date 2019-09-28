@@ -37,7 +37,7 @@ class BabyStepGUI {
     }
     
     private static createMenuLink(command: string, text: string): string {
-        return `<a style=\"color: #555555;\" href=\"javascript:pickACommand('${command}');\">${text}</a> `
+        return `<a style=\"color: #555555;\" href=\"javascript:${command}();\">${text}</a> `
     }
     public static resetGui():void{
         document.body.innerHTML = this.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
@@ -54,34 +54,24 @@ let _threadTimer: NodeJS.Timer;
 document.body.innerHTML = BabyStepGUI.CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 
 
-function pickACommand(arg: string): void {
-    let args = { Url: { AbsoluteUri: `command://${arg}/` } }
-    console.log('called', arg, args.Url.AbsoluteUri);
-    if (args.Url.AbsoluteUri == "command://start/") {
-        startTimer();
-    }
-    else if (args.Url.AbsoluteUri == "command://stop/") {
-        clearInterval(_threadTimer)
-        BabyStepGUI.resetGui();
+function quit():void {
+    document.body.innerHTML = "";
+    clearInterval(_threadTimer)
+}
 
-    }
-    else if (args.Url.AbsoluteUri == "command://reset/") {
-        currentStartTime = Date.now();
-        _bodyBackgroundColor = Configurations.BackgroundColorPassed;
-    }
-    else if (args.Url.AbsoluteUri == "command://quit/") {
-        document.body.innerHTML = "";
-        clearInterval(_threadTimer)
-    }
-
-};
-
-
-function startTimer():void {
-    BabyStepGUI.resetGui()
-
+function reset():void {
     currentStartTime = Date.now();
+    _bodyBackgroundColor = Configurations.BackgroundColorPassed;
+}
 
+function stop():void{
+    clearInterval(_threadTimer)
+    BabyStepGUI.resetGui();
+}
+
+function start():void {
+    BabyStepGUI.resetGui()
+    currentStartTime = Date.now();
     _threadTimer = setInterval(runNextTick(), 10);
 }
 
