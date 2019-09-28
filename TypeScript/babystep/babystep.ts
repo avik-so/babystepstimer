@@ -6,26 +6,27 @@ class Configurations {
     static  SecondsInCycle: number = 120;
 }
 
-
 class GUIStuff {
 
+    public static bodyBackgroundColor: string = Configurations.BackgroundColorNeutral;
 
+    public static isNewSecond(remainingTime) {
+        return this._lastRemainingTime !== remainingTime;
+    }
 
-    public static runNextTick(): (...args: any[]) => void {
-    return function () {
-            let elapsedTime: number = TimeStuff.calculateElaspedTime();
-            GUIStuff.mightChangeBGColor(elapsedTime, ActiveState.bodyBackgroundColor);
-            GUIStuff.updateUIForNewSecond(elapsedTime);
-    };
-
-}
-    public static updateUIForNewSecond(elapsedTime: number){
-        let remainingTime: string = GUIStuff.getRemainingTimeCaption(elapsedTime);
-        if (TimeStuff.isNewSecond(remainingTime)) {
-            SoundStuff.playSoundAtKeyPoints(remainingTime);
-            this.updateHtml(remainingTime, ActiveState.bodyBackgroundColor);
-            ActiveState._lastRemainingTime = remainingTime;
+    public static _lastRemainingTime: string = GUIStuff.getRemainingTimeCaption(Configurations.SecondsInCycle * 1000);
+    public static runNextTick(): void {
+        let elapsedTime: number = TimeStuff.calculateElaspedTime(Configurations.SecondsInCycle);
+        this.bodyBackgroundColor = this.mightChangeBGColor(elapsedTime, this.bodyBackgroundColor);
+        let remainingTime: string = this.getRemainingTimeCaption(elapsedTime);
+        if (this.isNewSecond(remainingTime)) {
+            this.updateUIForNewSecond(remainingTime);
+            this._lastRemainingTime = remainingTime;
         }
+    }
+    public static updateUIForNewSecond(remainingTime: string): void{
+        SoundStuff.playSoundAtKeyPoints(remainingTime);
+        this.updateHtml(remainingTime, this.bodyBackgroundColor);
     }
 
     public static updateHtml(remainingTime: string, bgColor:string) {
@@ -34,11 +35,12 @@ class GUIStuff {
 
     public static mightChangeBGColor(elapsedTime: number, bgColor: string) {
         if ( TimeStuff.isElapsedTimeBetween5and6seconds(elapsedTime) && this.isNotNeutralBG(bgColor)) {
-            ActiveState.bodyBackgroundColor = Configurations.BackgroundColorNeutral;
+            bgColor = Configurations.BackgroundColorNeutral;
         }
         if (elapsedTime >= Configurations.SecondsInCycle * 1000){
-            ActiveState.bodyBackgroundColor = Configurations.BackgroundColorFailed;
+            bgColor = Configurations.BackgroundColorFailed;
         }
+        return bgColor;
         
     }
 
@@ -93,18 +95,15 @@ class HTMLOutput {
     }
     
     private static createMenuLink(command: string, text: string): string {
-        return `<a style=\"color: #555555;\" href=\"javascript:${command}();\">${text}</a> `
+        return `<a style=\"color: #555555;\" href=\"javascript:ActiveState.${command}();\">${text}</a> `
     }
- 
-}
+ }
 
 
 
 class ActiveState {
-    public static currentStartTime: number = Date.now();
-    public static _lastRemainingTime: string = GUIStuff.getRemainingTimeCaption(Configurations.SecondsInCycle * 1000);
 
-    public static bodyBackgroundColor: string = Configurations.BackgroundColorNeutral;
+
     public static _threadTimer: NodeJS.Timer ;
     public static quit():void {
         document.body.innerHTML = "";
@@ -112,8 +111,8 @@ class ActiveState {
     }
     
     public static reset():void {
-        this.currentStartTime = Date.now();
-        this.bodyBackgroundColor = Configurations.BackgroundColorPassed;
+        TimeStuff.currentStartTime = Date.now();
+        GUIStuff.bodyBackgroundColor = Configurations.BackgroundColorPassed;
     }
     
     public static stop():void{
@@ -123,12 +122,10 @@ class ActiveState {
     
     public static start():void {
         HTMLOutput.resetGui()
-        this.currentStartTime = Date.now();
-        this._threadTimer = setInterval(GUIStuff.runNextTick(), 10);
+        TimeStuff.currentStartTime = Date.now();
+        this._threadTimer = setInterval(GUIStuff.runNextTick, 10);
     }
 }
-
-
 
 
 class SoundStuff {
@@ -152,27 +149,26 @@ class SoundStuff {
 }
 
 class TimeStuff {
-    public static isNewSecond(remainingTime) {
-        return ActiveState._lastRemainingTime !== remainingTime;
-    }
-    public static calculateElaspedTime() {
-        let elapsedTime: number = Date.now() - ActiveState.currentStartTime;
-        elapsedTime = this.resetTimeIfOver(elapsedTime);
+   
+    public static currentStartTime: number = Date.now();
+
+    public static calculateElaspedTime( cycleTime: number) {
+        let elapsedTime: number = Date.now() - this.currentStartTime;
+        elapsedTime = this.resetTimeIfOver(elapsedTime, this.currentStartTime, cycleTime);
         return elapsedTime;
     }
 
     public static isElapsedTimeBetween5and6seconds(elapsedTime: number){
         return elapsedTime >= 5000 && elapsedTime < 6000
     }
-    public static resetTimeIfOver(elapsedTime: number) {
-        if (elapsedTime >= Configurations.SecondsInCycle * 1000 + 980) {
-            ActiveState.currentStartTime = Date.now();
-            elapsedTime = Date.now() - ActiveState.currentStartTime;
+    public static resetTimeIfOver(elapsedTime: number, currentStartTime: number, cycleTime: number) {
+        if (elapsedTime >= cycleTime * 1000 + 980) {
+            currentStartTime = Date.now();
+            elapsedTime = Date.now() - currentStartTime;
         }
         return elapsedTime;
     }
 
 }
+
 document.body.innerHTML = HTMLOutput.CreateTimerHtml(GUIStuff.getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
-
-
