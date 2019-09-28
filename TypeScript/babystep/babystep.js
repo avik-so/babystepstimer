@@ -39,7 +39,7 @@ function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySound
     return function () {
         if (isTimerRunning) {
             let elapsedTime = calculateElaspedTime();
-            mightResetBGColor(elapsedTime, _bodyBackgroundColor);
+            mightChangeBGColor(elapsedTime, _bodyBackgroundColor);
             let remainingTime = getRemainingTimeCaption(elapsedTime);
             if (isNewSecond(remainingTime)) {
                 playSoundIfTimeis10or0SecondsRemaining(remainingTime);
@@ -68,7 +68,7 @@ function calculateElaspedTime() {
 function updateHtml(remainingTime, bgColor) {
     document.body.innerHTML = CreateTimerHtml(remainingTime, bgColor, true);
 }
-function mightResetBGColor(elapsedTime, bgColor) {
+function mightChangeBGColor(elapsedTime, bgColor) {
     if (isElapsedTimeBetween5and6seconds(elapsedTime) && isNotNeutralBG(bgColor)) {
         _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
     }
@@ -107,16 +107,23 @@ function CreateTimerHtml(timerText, bodyColor, running) {
         "<h1 style=\"text-align: center; font-size: 30px; color: #333333;\">" + timerText +
         "</h1>" +
         "<div style=\"text-align: center\">";
-    if (running) {
-        timerHtml += "<a style=\"color: #555555;\" href=\"javascript:pickACommand('stop');\">Stop</a> " +
-            "<a style=\"color: #555555;\" href=\"javascript:pickACommand('reset');\">Reset</a> ";
-    }
-    else {
-        timerHtml += "<a style=\"color: #555555;\" href=\"javascript:pickACommand('start');\">Start</a> ";
-    }
-    timerHtml += "<a style=\"color: #555555;\" href=\"javascript:pickACommand('quit');\">Quit</a> ";
+    timerHtml += createMenuHTML(running);
     timerHtml += "</div></div>";
     return timerHtml;
+}
+function createMenuHTML(isRunning) {
+    let menuHTML = '';
+    if (isRunning) {
+        menuHTML += createMenuLink('stop', 'Stop') + createMenuLink('reset', "Reset");
+    }
+    else {
+        menuHTML += createMenuLink('start', 'Start');
+    }
+    menuHTML += createMenuLink('quit', 'Quit');
+    return menuHTML;
+}
+function createMenuLink(command, text) {
+    return `<a style=\"color: #555555;\" href=\"javascript:pickACommand('${command}');\">${text}</a> `;
 }
 function playSound(url) {
     let audio = new Audio();
