@@ -43,28 +43,50 @@ function pickACommand(arg: string): void {
 function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds(): (...args: any[]) => void {
     return function () {
         if (isTimerRunning) {
-            let elapsedTime: number = Date.now() - currentStartTime;
-            if (elapsedTime >= Configurations.SecondsInCycle * 1000 + 980) {
-                currentStartTime = Date.now();
-                elapsedTime = Date.now() - currentStartTime;
-            }
-            if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Configurations.BackgroundColorNeutral) {
-                _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
-            }
+            let elapsedTime: number = calculateElaspedTime();
+            changeBGColorToNeutralIfElapsedTimebetween5and6Seconds(elapsedTime);
             let remainingTime: string = getRemainingTimeCaption(elapsedTime);
-            if (_lastRemainingTime !== remainingTime) {
-                if (remainingTime == "00:10") {
-                    playSound("2166__suburban-grilla__bowl-struck.wav");
-                }
-                else if (remainingTime == "00:00") {
-                    playSound("32304__acclivity__shipsbell.wav");
-                    _bodyBackgroundColor = Configurations.BackgroundColorFailed;
-                }
-                document.body.innerHTML = CreateTimerHtml(remainingTime, _bodyBackgroundColor, true);
-                _lastRemainingTime = remainingTime;
-            }
+            doStuffIfNextSecondPassed(remainingTime, playSoundIfTimeis10or0SecondsRemaining);
         }
     };
+
+    function playSoundIfTimeis10or0SecondsRemaining(remainingTime: string) {
+        if (remainingTime == "00:10") {
+            playSound("2166__suburban-grilla__bowl-struck.wav");
+        }
+        else if (remainingTime == "00:00") {
+            playSound("32304__acclivity__shipsbell.wav");
+            _bodyBackgroundColor = Configurations.BackgroundColorFailed;
+        }
+    }
+}
+
+function calculateElaspedTime() {
+    let elapsedTime: number = Date.now() - currentStartTime;
+    elapsedTime = resetTimeIfOver(elapsedTime);
+    return elapsedTime;
+}
+
+function doStuffIfNextSecondPassed(remainingTime: string, playSoundIfTimeis10or0SecondsRemaining: (remainingTime: string) => void) {
+    if (_lastRemainingTime !== remainingTime) {
+        playSoundIfTimeis10or0SecondsRemaining(remainingTime);
+        document.body.innerHTML = CreateTimerHtml(remainingTime, _bodyBackgroundColor, true);
+        _lastRemainingTime = remainingTime;
+    }
+}
+
+function changeBGColorToNeutralIfElapsedTimebetween5and6Seconds(elapsedTime: number) {
+    if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Configurations.BackgroundColorNeutral) {
+        _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
+    }
+}
+
+function resetTimeIfOver(elapsedTime: number) {
+    if (elapsedTime >= Configurations.SecondsInCycle * 1000 + 980) {
+        currentStartTime = Date.now();
+        elapsedTime = Date.now() - currentStartTime;
+    }
+    return elapsedTime;
 }
 
 function getRemainingTimeCaption(elapsedTime: number): string {
