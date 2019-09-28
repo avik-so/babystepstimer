@@ -1,24 +1,20 @@
-const BackgroundColorNeutral: string = "#ffffff";
-const BackgroundColorFailed: string = "#ffcccc";
-const BackgroundColorPassed: string = "#ccffcc";
-const SecondsInCycle: number = 120;
-
+import { Configurations } from "./BackgroundColorNeutral.1";
 
 let _timerRunning: boolean;
 let _currentCycleStartTime: number;
 let _lastRemainingTime: string;
-let _bodyBackgroundColor: string = BackgroundColorNeutral;
+let _bodyBackgroundColor: string = Configurations.BackgroundColorNeutral;
 let _threadTimer: NodeJS.Timer;
 
 
-document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), BackgroundColorNeutral, false);
+document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 
 
 function command(arg: string): void {
     let args = { Url: { AbsoluteUri: `command://${arg}/` } }
     console.log('called', arg, args.Url.AbsoluteUri);
     if (args.Url.AbsoluteUri == "command://start/") {
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), BackgroundColorNeutral, true);
+        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
 
         _timerRunning = true;
         _currentCycleStartTime = Date.now();
@@ -27,25 +23,25 @@ function command(arg: string): void {
             if (_timerRunning) {
                 let elapsedTime: number = Date.now() - _currentCycleStartTime;
 
-                if (elapsedTime >= SecondsInCycle * 1000 + 980) {
+                if (elapsedTime >= Configurations.SecondsInCycle * 1000 + 980) {
                     _currentCycleStartTime = Date.now();
                     elapsedTime = Date.now() - _currentCycleStartTime;
                 }
-                if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != BackgroundColorNeutral) {
-                    _bodyBackgroundColor = BackgroundColorNeutral;
+                if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Configurations.BackgroundColorNeutral) {
+                    _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
                 }
 
                 let remainingTime: string = getRemainingTimeCaption(elapsedTime);
-             
-                
+
+
                 if (_lastRemainingTime !== remainingTime) {
-                   
+
                     if (remainingTime == "00:10") {
                         playSound("2166__suburban-grilla__bowl-struck.wav");
                     }
                     else if (remainingTime == "00:00") {
                         playSound("32304__acclivity__shipsbell.wav");
-                        _bodyBackgroundColor = BackgroundColorFailed;
+                        _bodyBackgroundColor = Configurations.BackgroundColorFailed;
                     }
 
                     document.body.innerHTML = CreateTimerHtml(remainingTime, _bodyBackgroundColor, true);
@@ -57,12 +53,12 @@ function command(arg: string): void {
     else if (args.Url.AbsoluteUri == "command://stop/") {
         _timerRunning = false;
         clearInterval(_threadTimer)
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), BackgroundColorNeutral, false);
+        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 
     }
     else if (args.Url.AbsoluteUri == "command://reset/") {
         _currentCycleStartTime = Date.now();
-        _bodyBackgroundColor = BackgroundColorPassed;
+        _bodyBackgroundColor = Configurations.BackgroundColorPassed;
     }
     else if (args.Url.AbsoluteUri == "command://quit/") {
         document.body.innerHTML = "";
@@ -74,7 +70,7 @@ function command(arg: string): void {
 
 function getRemainingTimeCaption(elapsedTime: number): string {
 
-    let remainingTime: Date = new Date((SecondsInCycle * 1000) - elapsedTime);
+    let remainingTime: Date = new Date((Configurations.SecondsInCycle * 1000) - elapsedTime);
     var minute: string | number = remainingTime.getMinutes();
     var second: string | number = remainingTime.getSeconds();
     if (minute < 10) { minute = '0' + minute; }
@@ -110,4 +106,5 @@ function playSound(url: string): void {
     audio.load();
     audio.play();
 }
+
 
