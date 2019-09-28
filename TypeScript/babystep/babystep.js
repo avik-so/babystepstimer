@@ -1,17 +1,21 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const Config_1 = require("./Config");
+class Configurations {
+}
+Configurations.BackgroundColorNeutral = "#ffffff";
+Configurations.BackgroundColorFailed = "#ffcccc";
+Configurations.BackgroundColorPassed = "#ccffcc";
+Configurations.SecondsInCycle = 11;
 let isTimerRunning;
 let currentStartTime;
 let _lastRemainingTime;
-let _bodyBackgroundColor = Config_1.Configurations.BackgroundColorNeutral;
+let _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
 let _threadTimer;
-document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Config_1.Configurations.BackgroundColorNeutral, false);
+document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
 function pickACommand(arg) {
     let args = { Url: { AbsoluteUri: `command://${arg}/` } };
     console.log('called', arg, args.Url.AbsoluteUri);
     if (args.Url.AbsoluteUri == "command://start/") {
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Config_1.Configurations.BackgroundColorNeutral, true);
+        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, true);
         isTimerRunning = true;
         currentStartTime = Date.now();
         _threadTimer = setInterval(IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySounds(), 10);
@@ -19,11 +23,11 @@ function pickACommand(arg) {
     else if (args.Url.AbsoluteUri == "command://stop/") {
         isTimerRunning = false;
         clearInterval(_threadTimer);
-        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Config_1.Configurations.BackgroundColorNeutral, false);
+        document.body.innerHTML = CreateTimerHtml(getRemainingTimeCaption(0), Configurations.BackgroundColorNeutral, false);
     }
     else if (args.Url.AbsoluteUri == "command://reset/") {
         currentStartTime = Date.now();
-        _bodyBackgroundColor = Config_1.Configurations.BackgroundColorPassed;
+        _bodyBackgroundColor = Configurations.BackgroundColorPassed;
     }
     else if (args.Url.AbsoluteUri == "command://quit/") {
         document.body.innerHTML = "";
@@ -46,7 +50,7 @@ function IfTimerIsRunningResetElapsedTimeifOverUpdateBackgroundColorAndPlaySound
         }
         else if (remainingTime == "00:00") {
             playSound("32304__acclivity__shipsbell.wav");
-            _bodyBackgroundColor = Config_1.Configurations.BackgroundColorFailed;
+            _bodyBackgroundColor = Configurations.BackgroundColorFailed;
         }
     }
 }
@@ -63,19 +67,19 @@ function doStuffIfNextSecondPassed(remainingTime, playSoundIfTimeis10or0SecondsR
     }
 }
 function changeBGColorToNeutralIfElapsedTimebetween5and6Seconds(elapsedTime) {
-    if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Config_1.Configurations.BackgroundColorNeutral) {
-        _bodyBackgroundColor = Config_1.Configurations.BackgroundColorNeutral;
+    if (elapsedTime >= 5000 && elapsedTime < 6000 && _bodyBackgroundColor != Configurations.BackgroundColorNeutral) {
+        _bodyBackgroundColor = Configurations.BackgroundColorNeutral;
     }
 }
 function resetTimeIfOver(elapsedTime) {
-    if (elapsedTime >= Config_1.Configurations.SecondsInCycle * 1000 + 980) {
+    if (elapsedTime >= Configurations.SecondsInCycle * 1000 + 980) {
         currentStartTime = Date.now();
         elapsedTime = Date.now() - currentStartTime;
     }
     return elapsedTime;
 }
 function getRemainingTimeCaption(elapsedTime) {
-    let remainingTime = new Date((Config_1.Configurations.SecondsInCycle * 1000) - elapsedTime);
+    let remainingTime = new Date((Configurations.SecondsInCycle * 1000) - elapsedTime);
     var minute = remainingTime.getMinutes();
     var second = remainingTime.getSeconds();
     if (minute < 10) {
