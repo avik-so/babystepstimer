@@ -1,10 +1,12 @@
 {
     "compilerOptions": {
-        "module": "umd",
-        "target": "ES2017",
+        "outDir": "./dist/",
+        "module": "commonjs",
+        "target": "es6",
         "strict": true,
-        "noImplicitAny": false,
-        "sourceMap": false
+        "noImplicitAny": true,
+        "sourceMap": true,
+        "allowJs": false
     },
     "exclude": [
         "node_modules"
