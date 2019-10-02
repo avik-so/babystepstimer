@@ -26,7 +26,6 @@ class HTMLOutput {
         return menuHTML;
     }
     static createMenuLink(command) {
-        //Hiddent dependecy on Controller class
         const capitalizedCommand = command.charAt(0).toUpperCase() + command.substring(1);
         return `<a style=\"color: #555555;\" href=\"javascript:${command}();\">${capitalizedCommand}</a> `;
     }

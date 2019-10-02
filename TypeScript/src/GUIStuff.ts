@@ -1,5 +1,4 @@
 import { HTMLOutput } from './HTMLOutput';
-import { BellPlayer } from './BellPlayer';
 import { Configurations } from './Configurations';
 import { TimeCalculations } from './TimeCalculations';
 export class GUIStuff {
